@@ -28,7 +28,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 # LangChain imports
-from langchain_openai import ChatOpenAI
+# from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 
 # Local modules
@@ -201,11 +202,10 @@ def _build_extraction_chain() -> Any:
     The chain uses with_structured_output() which leverages OpenAI's
     function-calling API under the hood to guarantee a valid, typed object.
     """
-    llm = ChatOpenAI(
-        model="gpt-4o-mini",
-        temperature=0,          # deterministic extraction
-        api_key=os.environ.get("OPENAI_API_KEY"),
-    )
+    llm = ChatGroq(
+    model="llama-3.1-8b-instant",     
+    api_key=os.environ.get("GROQ_API_KEY")
+)
 
     extraction_prompt = ChatPromptTemplate.from_messages(
         [
@@ -245,11 +245,10 @@ def _build_response_chain() -> Any:
          'not found' message).
       2. Generates a warm, informative, conversational reply for the user.
     """
-    llm = ChatOpenAI(
-        model="gpt-4o-mini",
-        temperature=0.7,        # slightly creative for natural conversation
-        api_key=os.environ.get("OPENAI_API_KEY"),
-    )
+    llm = ChatGroq(
+    model="llama-3.1-8b-instant",
+    api_key=os.environ.get("GROQ_API_KEY")
+)
 
     response_prompt = ChatPromptTemplate.from_messages(
         [
