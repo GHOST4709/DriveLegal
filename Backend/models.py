@@ -10,8 +10,16 @@ including the fine amount, currency, and legal consequences.
 
 from sqlalchemy import Integer, String, Index
 from sqlalchemy.orm import Mapped, mapped_column
-
+from sqlalchemy import Column, Integer, String
 from database import Base
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    # Notice we call it 'hashed_password', not 'password'
+    hashed_password = Column(String, nullable=False)
 
 
 class TrafficLaw(Base):

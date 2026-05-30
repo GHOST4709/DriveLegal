@@ -34,13 +34,15 @@ from langchain_core.prompts import ChatPromptTemplate
 
 # Local modules
 from database import engine, get_db, Base
-from models import TrafficLaw
+from models import TrafficLaw, User
 from schemas import (
     TrafficLawResponse,
     ChatbotExtraction,
     ChatRequest,
     ChatResponse,
 )
+from security import get_password_hash # <-- Added security import here
+from pydantic import BaseModel
 
 # ---------------------------------------------------------------------------
 # Logging configuration
@@ -450,6 +452,45 @@ def chat(
         extracted_data=extracted_data,
     )
 
+# ===========================================================================
+# Endpoint D: User Authentication  (SignUp)
+# ===========================================================================
+# We define the expected JSON payload from the frontend
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
+@app.post(
+    "/api/signup",
+    summary="Register a new user",
+    tags=["Authentication"],
+)
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    """
+    Registers a new user by checking for duplicates, hashing their 
+    plain-text password, and securely saving them to the SQLite database.
+    """
+    logger.info("POST /api/signup for username='%s'", user.username)
+
+    # 1. Check if the username already exists
+    existing_user = db.query(User).filter(User.username == user.username).first()
+    if existing_user:
+        logger.warning("Signup failed: Username '%s' already exists.", user.username)
+        raise HTTPException(status_code=400, detail="Username already registered")
+
+    # 2. Hash the plain text password securely
+    secure_password = get_password_hash(user.password)
+
+    # 3. Create the database record
+    new_user = User(username=user.username, hashed_password=secure_password)
+    
+    # 4. Save it to the SQLite database
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    logger.info("User '%s' registered successfully.", user.username)
+    return {"message": f"User {user.username} created successfully!"}
 
 # ===========================================================================
 # Health check
