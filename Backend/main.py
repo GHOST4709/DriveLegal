@@ -31,6 +31,8 @@ from sqlalchemy import func
 # from langchain_openai import ChatOpenAI
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
+# from langchain_community.tools import DuckDuckGoSearchRun
+from duckduckgo_search import DDGS
 
 # Local modules
 from database import engine, get_db, Base
@@ -400,26 +402,33 @@ def chat(
             "DB match found: id=%d  fine=%d %s", law.id, law.fine_amount, law.currency
         )
     else:
-        db_result_text = (
-            f"No record found in the database for:\n"
-            f"  City         : {extraction.city}\n"
-            f"  Violation    : {extraction.violation}\n"
-            f"  Vehicle type : {extraction.vehicle_type}\n"
-            "Please inform the user that this specific combination is not in the "
-            "database and suggest they contact local authorities or rephrase."
-        )
+        logger.warning("No DB match. Triggering fallback Web Search...")
+        
+        # --- THE LIGHTWEIGHT WEB SEARCH MAGIC ---
+        try:
+            # Hit DuckDuckGo and grab the top 2 results
+            results = DDGS().text(user_message, max_results=2)
+            
+            # Stitch the text snippets together
+            search_snippets = "\n".join([f"- {res['body']}" for res in results])
+            
+            db_result_text = (
+                f"NO DATABASE RECORD FOUND.\n"
+                f"WEB SEARCH RESULTS:\n{search_snippets}"
+            )
+            logger.info("Web search completed successfully.")
+        except Exception as e:
+            logger.error("Web search failed: %s", e)
+            db_result_text = "NO DATABASE RECORD FOUND. WEB SEARCH FAILED."
+        # ----------------------------
+        
         extracted_data = {
             "city": extraction.city,
             "violation": extraction.violation,
             "vehicle_type": extraction.vehicle_type,
             "db_record_found": False,
+            "web_search_used": True,
         }
-        logger.warning(
-            "No DB match for city='%s' violation='%s' vehicle='%s'",
-            extraction.city,
-            extraction.violation,
-            extraction.vehicle_type,
-        )
 
     # ------------------------------------------------------------------
     # Step 5: Generate the conversational AI reply
