@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { sendChatToAI } from "./api";
-
+import  Dashboard from './components/Dashboard.jsx'; 
 function App() {
   return (
       <Dashboard />

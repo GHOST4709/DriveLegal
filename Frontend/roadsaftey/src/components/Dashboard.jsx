@@ -245,7 +245,7 @@ function LiveMap() {
         </div>
       )}
 
-      {/* Downtown badge — top left */}
+      {/* Downtown badge — top left
       <div style={{
         position:"absolute", top:14, left:14, zIndex:1000,
         display:"flex", alignItems:"center", gap:7, pointerEvents:"none",
@@ -255,8 +255,8 @@ function LiveMap() {
       }}>
         <Navigation size={13} color={T.accent} />
         Downtown Enforcement Zone
-      </div>
-
+      </div> */}
+      
       {/* Legend pills — bottom left */}
       <div style={{
         position:"absolute", bottom:14, left:14, zIndex:1000,
