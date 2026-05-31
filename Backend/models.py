@@ -11,15 +11,17 @@ including the fine amount, currency, and legal consequences.
 from sqlalchemy import Integer, String, Index
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import Column, Integer, String
+from datetime import datetime
+from sqlalchemy import Boolean, DateTime
 from database import Base
 
-class User(Base):
-    __tablename__ = "users"
+# class User(Base):
+#     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True, nullable=False)
-    # Notice we call it 'hashed_password', not 'password'
-    hashed_password = Column(String, nullable=False)
+#     id = Column(Integer, primary_key=True, index=True)
+#     username = Column(String, unique=True, index=True, nullable=False)
+#     # Notice we call it 'hashed_password', not 'password'
+#     hashed_password = Column(String, nullable=False)
 
 
 class TrafficLaw(Base):
@@ -111,3 +113,39 @@ class TrafficLaw(Base):
             f"violation='{self.violation_name}' vehicle='{self.vehicle_type}' "
             f"fine={self.fine_amount} {self.currency}>"
         )
+# ── Paste this class into your models.py (after TrafficLaw) ──────
+class User(Base):
+    """
+    Stores registered user accounts.
+    Passwords are bcrypt-hashed — never stored in plain text.
+    """
+ 
+    __tablename__ = "users"
+ 
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True, index=True,
+    )
+    full_name: Mapped[str] = mapped_column(
+        String(200), nullable=False,
+        doc="User's display name.",
+    )
+    email: Mapped[str] = mapped_column(
+        String(200), nullable=False, unique=True, index=True,
+        doc="Unique login email address (stored lowercase).",
+    )
+    hashed_password: Mapped[str] = mapped_column(
+        String(500), nullable=False,
+        doc="bcrypt hash of the user's password.",
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, nullable=False,
+        doc="UTC timestamp of account creation.",
+    )
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False,
+        doc="False = soft-deleted / deactivated account.",
+    )
+ 
+    def __repr__(self) -> str:
+        return f"<User id={self.id} email='{self.email}'>"
+ 

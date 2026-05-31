@@ -14,7 +14,7 @@ Run:
 Environment variable required for the chat endpoint:
     OPENAI_API_KEY=sk-...
 """
-
+from auth import router as auth_router
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -81,7 +81,7 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
-
+app.include_router(auth_router)
 # ---------------------------------------------------------------------------
 # CORS — allow all origins for hackathon local development
 # ---------------------------------------------------------------------------

@@ -15,7 +15,7 @@ import {
   X, Send, Loader2
 } from "lucide-react";
 
-import { sendChatToAI } from "../api"; 
+import { lawsAPI } from "../api.js"; 
 
 // ── Leaflet ──────────────
 import L from "leaflet";
@@ -319,7 +319,7 @@ function ChatBox({ onClose }) {
     setMessages((prev) => [...prev, { role: "user", text: userText }]);
     setIsLoading(true);
     try {
-      const aiResponse = await sendChatToAI(userText);
+      const aiResponse = await lawsAPI.chat(userText, localStorage.getItem("access_token"));
       setMessages((prev) => [...prev, { role: "ai", text: aiResponse.reply }]);
     } catch (error) {
       setMessages((prev) => [...prev, { role: "ai", text: "Sorry, I lost connection to the backend!" }]);

@@ -1,12 +1,41 @@
 import { useState, useRef, useEffect } from "react";
-import { sendChatToAI } from "./api";
+import { authAPI, lawsAPI } from "./api";
+import {
+  // ... your other icons
+  X, Send, Loader2, Globe, Database // <--- ADD Globe and Database
+} from "lucide-react";
 import  Dashboard from './components/Dashboard.jsx'; 
-function App() {
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider }   from "./context/AuthContext";
+import ProtectedRoute     from "./components/ProtectedRoute";
+import LoginPage          from "./pages/LoginPage";
+
+
+export default function App() {
   return (
-      <Dashboard />
-  )
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          {/* Public route */}
+          <Route path="/login" element={<LoginPage />} />
+ 
+          {/* Protected route — redirects to /login if not authenticated */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+ 
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
-export default App
 
 
 
