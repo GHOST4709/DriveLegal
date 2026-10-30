@@ -167,7 +167,7 @@ def calculate_fine(
     law = (
         db.query(TrafficLaw)
         .filter(
-            func.lower(TrafficLaw.city) == func.lower(city),
+            (TrafficLaw.city) == func.lower(city),
             func.lower(TrafficLaw.violation_name) == func.lower(violation_name),
             func.lower(TrafficLaw.vehicle_type) == func.lower(vehicle_type),
         )

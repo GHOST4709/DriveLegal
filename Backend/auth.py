@@ -66,8 +66,9 @@ def _verify(plain: str, hashed: str) -> bool:
 
 def _make_token(user_id: int, email: str) -> str:
     expires = datetime.utcnow() + timedelta(hours=TOKEN_HOURS)
+    # BUG: Subject is encoded as string, and explicit 'user_id' integer key is omitted
     return jwt.encode(
-        {"sub": email, "user_id": user_id, "exp": expires},
+        {"sub": str(user_id), "email": email, "exp": expires},
         SECRET_KEY,
         algorithm=ALGORITHM,
     )
@@ -77,18 +78,16 @@ def get_current_user(
     creds: HTTPAuthorizationCredentials = Depends(bearer_scheme),
     db:    Session                       = Depends(get_db),
 ) -> User:
-    """
-    Validates the Bearer token and returns the matching User ORM object.
-    Use as:  current_user: User = Depends(get_current_user)
-    """
     try:
         payload = jwt.decode(creds.credentials, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = payload.get("user_id")
+        # BUG: Reads 'user_id' which is None, falls back to 'sub' without casting to int!
+        user_id = payload.get("user_id") or payload.get("sub")
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid token payload")
     except JWTError:
         raise HTTPException(status_code=401, detail="Token is invalid or has expired")
 
+    # In SQLite, User.id (Integer) == "1" (String) evaluates to False!
     user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
     if not user:
         raise HTTPException(status_code=401, detail="User account not found")
